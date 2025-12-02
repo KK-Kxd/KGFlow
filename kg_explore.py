@@ -55,19 +55,24 @@ def process_response(response):
         pass
 
 
-def chat_llm(model, query):
+def chat_llm(model_name, query):
     messages = [
         {"role": "system", "content": "You are a helpful assistant."},
         {"role": "user", "content": query},
     ]
-    response: ChatResponse = chat(model=model, messages=messages, options={"temperature": 0.4})
+    response: ChatResponse = chat(model=model_name, messages=messages, options={"temperature": 0.4})
     return response.message.content
-    
-def extract_entity(query, args):
+
+def extract_entity(query, args, model=None):
     messages = promptTemplate.entity_extract_prompt.format(query=query)
-    
+
     for attempt in range(args.max_tries):
-        response = chat_llm(args.model, messages)
+        if model is not None:
+            # Use the ChatModel instance
+            response = model.generate_response(messages, 0.4)
+        else:
+            # Fallback to ollama
+            response = chat_llm(args.model, messages)
         response = response.strip()
         print(f"Attempt {attempt + 1}: {response}")
         
@@ -88,7 +93,7 @@ def extract_entity(query, args):
 def relation_score(question, entity, out_rel, in_rel, args, model):
     for attempt in range(args.max_tries):
         prompt = promptTemplate.score_relation_prompt.format(question, entity, out_rel+in_rel)
-        response = model.generate_response(prompt, 256, 0.4)
+        response = model.generate_response(prompt, 0.4)
 
         
         if response.strip()[-1] != '}':
@@ -150,7 +155,7 @@ def relation_score(question, entity, out_rel, in_rel, args, model):
 def entity_score(question, entity_candidates, relation, args, model):
     prompt = promptTemplate.score_entity_prompt.format(question, relation) + "; ".join(entity_candidates) + '\nScore: '
 
-    response = model.generate_response(prompt, 256, 0.4)
+    response = model.generate_response(prompt, 0.4)
 
 
     entities = process_response(response)
@@ -178,7 +183,7 @@ def calculate_score(rel_score, entity_score, weight1, weight2):
 def get_score(query, entity, args, neo4j, model):
     out_rel, in_rel = neo4j.get_entity_relationships(entity)
     if out_rel == [] and in_rel == []:
-        return []
+        return [], []
     rel_sc, out_rel, in_rel = relation_score(query, entity, out_rel, in_rel, args, model)
     ec = []
     if(rel_sc is not None and out_rel is not None and in_rel is not None):
@@ -218,7 +223,7 @@ def get_score(query, entity, args, neo4j, model):
             entities = None
             if_true = False
             while cnt <= 3 and entities is None and not if_true:
-                entities = entity_score(query, entity_candidate, rel, args)
+                entities = entity_score(query, entity_candidate, rel, args, model)
                 
                 if entities is not None:
                     valid_entities = []
@@ -262,7 +267,7 @@ def reasoning(question, sorted_scores, args, model):
     chain_prompt = '\n'.join([f"{entity1}, {relation}, {entity2}" for entity1, relation, entity2, score in sorted_scores])
     prompt += "\nKnowledge Triplets: " + chain_prompt + 'A: '
 
-    response = model.generate_response(prompt, 256, 0)
+    response = model.generate_response(prompt, 0.0)
 
     result = extract_answer(response)
     
@@ -272,10 +277,10 @@ def reasoning(question, sorted_scores, args, model):
         return False, response
     
 def process_query(query, args, neo4j, model):
-    entities = extract_entity(query, args)
+    entities = extract_entity(query, args, model)
     topic_ent = []
     for ent in entities:
-        topic_ent.append(neo4j.get_name(),ent)
+        topic_ent.append((neo4j.get_name(), ent))
     iteration = 0
     success = False
     beam_width = args.N

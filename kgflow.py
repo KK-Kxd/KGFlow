@@ -3,21 +3,22 @@ from kg_alignment import extract_entities_from_chains, align_entity_graphs_pairw
 from KGs.primeKG import PrimeDatabase
 from KGs.hetionet import HetionetDatabase
 from KGs.umls import UMLSDatabase
+from KGs.primeKG import PrimeDatabase
 from local_llm import ChatModel
 from kg_fuser import GraphFuser
 from Dataset.QADataset import QADataset
 from Dataset.PubMedQADataset import PubMedQADataset
 from tqdm import tqdm
 import concurrent.futures
-import argparse 
+import argparse
 import re
 import torch
 
-from typing import List, Dict, Union, Tuple, Any
+from typing import List, Tuple, Any
 
 torch.manual_seed(42)
 
-def predict_final_answer(self, query_with_options: str, relevant_paths_with_descriptions: List[Tuple[List[Tuple], str]], model: Any) -> str:
+def predict_final_answer(query_with_options: str, relevant_paths_with_descriptions: List[Tuple[List[Tuple], str]], model: Any) -> str:
         reasoning_context = []
         for i, (path, description) in enumerate(relevant_paths_with_descriptions):
             context_item = f"Evidence Path {i+1}:\n- Reasoning Chain: {path}\n- Explanation: {description}"
@@ -41,8 +42,8 @@ def predict_final_answer(self, query_with_options: str, relevant_paths_with_desc
         {}
         """
         prompt = prompt_template.format(query_with_options, formatted_context)
-        
-        response = model.generate_response(prompt, 256, 0.0)
+
+        response = model.generate_response(prompt, 0.0)
         
         match = re.search(r"Answer:\s*([A-D])", response, re.IGNORECASE)
         if match:
@@ -88,9 +89,9 @@ if __name__ == '__main__':
     umls = UMLSDatabase(args.umls_url,args.umls_username, args.umls_password)
     model_umls = ChatModel(args.model, args.model)
     tasks_to_run = [
-            # ("UMLS", umls, model_umls),
+            ("UMLS", umls, model_umls),
             ("PrimeKG", primeKG, model_primeKG),
-            # ("Hetionet", hetionet, model_hetionet)
+            ("Hetionet", hetionet, model_hetionet)
             ]
     datasets = args.datasets
 
@@ -197,7 +198,4 @@ if __name__ == '__main__':
 
     
     
-
-
-
 
