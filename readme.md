@@ -60,15 +60,21 @@ conda env create -f environment.yml
 ## 2. Prepare Neo4j
 
 You can download and install Neo4j from https://neo4j.com/. The Docker version is recommended.
+
 For UMLS, entities and triples are extracted from the MRCONSO.RRF and MRREL.RRF files, respectively.
-The Concept Unique Identifier serves as the unique node identifier, with each node storing all corresponding entity names and relationship attributes defining the connections between them.PrimeKG and Hetionet are directly imported into a Neo4j database.
+The Concept Unique Identifier serves as the unique node identifier, with each node storing all corresponding entity names and relationship attributes defining the connections between them.
+
+PrimeKG and Hetionet are directly imported into a Neo4j database.
 ## 3. Prepare Model
 
 The LLM can be downloaded from https://huggingface.co/, or it will be downloaded automatically when the script runs.
 
 The following is the download link for the model we use:
+
 https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct
+
 https://huggingface.co/FreedomIntelligence/HuatuoGPT-o1-8B
+
 https://huggingface.co/Qwen/Qwen3-8B
 
 
@@ -80,4 +86,5 @@ Bash
 python kgflow.py --model model_dir --umls_url bolt://host:port --umls_username username --umls_password password --primekg_url bolt://host:port --primekg_username username --primekg_password password --hetionet_url bolt://host:port --hetionet_username username --hetionet_password password
 
 ```
+
 
