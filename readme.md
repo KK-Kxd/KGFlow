@@ -42,7 +42,7 @@ You can find them in the `Dataset` folder of this repository.
 ├── promptTemplate.py           # Prompt templates for all LLM agents
 ├── KGFlow.png                  # Overview figure of the KGFlow framework
 └── README.md                   # Project documentation
-
+```text
 # Usage
 
 To use KGFlow, follow these steps:
@@ -77,4 +77,5 @@ Bash
 
 ```
 python kgflow.py --model model_dir --umls_url bolt://host:port --umls_username username --umls_password password --primekg_url bolt://host:port --primekg_username username --primekg_password password --hetionet_url bolt://host:port --hetionet_username username --hetionet_password password
+
 ```
