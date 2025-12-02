@@ -1,6 +1,6 @@
 # KGFlow
 <p align="center">
-  <img src="intro.png" alt="Intro" width="600">
+  <img src="intro.png" alt="Intro" width="500">
 </p>
 
 KGFlow is a research-oriented framework for multiple-choice medical question answering. It uses large language models (LLMs) to jointly reason over multiple heterogeneous knowledge graphs (KGs) instead of relying on a single KG.
@@ -112,6 +112,7 @@ To use KGFlow, follow these steps:
      --primekg_url bolt://host:port --primekg_username username --primekg_password password \
      --hetionet_url bolt://host:port --hetionet_username username --hetionet_password password
    ```
+
 
 
 
